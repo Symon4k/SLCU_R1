@@ -2,7 +2,8 @@
 	Brief: Programme principal du Système de Livraison de la Charge Utile (SLCU) du UAV du VAMUdeS conçu pour lacompétition américaine SUAS 2024.
   (Eng) Main program for the Payload Distribution System (PDS) for the VAMUdeS UAV designed for the SUAS 2024 US competition.
 	Date: 28 janvier 2024
-	Authors: Simon Jourdenais, David Mihai Kibos
+	Authors: Simon Jourdenais, David Mihai Kibos were here
+  Revision: 1.2
 */
 #include "SLCU.h"
 #include "SLCU_Constants.h"
