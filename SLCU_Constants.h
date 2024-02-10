@@ -11,6 +11,9 @@
 #define COMM_DELAY_PERIOD 100 //Delays in ms before checking if communication arrived again
 #define UPDATE_PERIOD 100 //Delays in ms before checking if communication arrived again
 #define BAUD_RATE 115200
+#define GATE_A 1
+#define GATE_B 2
+#define GATE_C 3
 
 enum States
 {

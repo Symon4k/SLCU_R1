@@ -25,12 +25,16 @@ class SLCU
 
     SLCU(); //Prototype of Constructor
     uint8_t checkSerial(); 
+    const StaticJsonDocument<200>& getTramePi() const {
+        return trame_Pi;
+    }
     void execute_LSC();
     void override();
     void decode_CMD();
     void sendToGCSO(String message);
     void cancelDelivery();
     void debugging();
+    void drop(const char* Iden_Bottle, float height);
     bool initialized = false;
     Commands processCommand(); 
     void init(int baudRate);
