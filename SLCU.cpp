@@ -5,6 +5,10 @@
 */
 #include "SLCU.h"
 #include "SLCU_Constants.h"
+#include <Servo.h>
+
+Servo servo_A, servo_B, servo_C;
+
 
 SLCU::SLCU(){}
 
@@ -12,16 +16,17 @@ void SLCU::init(int baudRate)
 {
   Serial.begin(baudRate);
 
-  pinMode(GATE_A,OUTPUT);// drop 
-  pinMode(GATE_B,OUTPUT);// drop 
-  pinMode(GATE_C,OUTPUT);// drop 
-  pinMode(rotation_pulses, INPUT);
+  //pinMode(GATE_A,OUTPUT);// drop 
+  //pinMode(GATE_B,OUTPUT);// drop 
+  //pinMode(GATE_C,OUTPUT);// drop 
+  //pinMode(rotation_pulses, INPUT);
 
   initialized = true;
   Launch_Status = NOGO; 
   Op_Mode = NONE; 
   Staging = STANDBY;
 }
+
 
 /*
 * Nom: checkSerial 
@@ -41,8 +46,7 @@ uint8_t SLCU::checkSerial()
         Serial.println(error.f_str());
         return -1;
       }
-
-      
+      return 0;      
 };
 
 
@@ -165,12 +169,11 @@ void SLCU::cancelDelivery()
 void SLCU::debugging()
 {
   Serial.println("Debugging");
-};
-
-/*
+}
 
 
-};/*File: SLCU.cpp
+
+/*File: SLCU.cpp
 	Brief: Classe Arduino du SLCU/PDS
 	Date: 28 janvier 2024
 	Authors: Simon Jourdenais, David Mihai Kibos
@@ -180,19 +183,7 @@ void SLCU::debugging()
 
 SLCU::SLCU(){}
 
-void SLCU::init(int baudRate)
-{
-  Serial.begin(baudRate);
 
-  pinMode(gateA,OUTPUT);//drop 
-  pinMode(gateB,OUTPUT);
-  pinMode(gateC,OUTPUT);
-
-  initialized = true;
-  Launch_Status = NOGO; 
-  Op_Mode = NONE; 
-  Staging = STANDBY;
-}
 
 /*
 * Nom: checkSerial 
@@ -310,45 +301,12 @@ void SLCU::override()
 
 
 /*
-* Nom: sendToGCSO
-* Brief:
-* Params:
-* Return: 
-*/
-void SLCU::sendToGCSO(String message)
-{
-  Serial.println("Send To GCSO the following message");
-};
-
-/*
-* Nom: cancelDelivery
-* Brief:
-* Params:
-* Return: 
-*/
-void SLCU::cancelDelivery()
-{
-  sendToGCSO("Cancel Delivery");
-}
-
-/*
-* Nom: debugging
-* Brief:
-* Params:
-* Return: 
-*/
-void SLCU::debugging()
-{
-  Serial.println("Debugging");
-};
-
-/*
-* Nom: debugging
-* Brief: Bottle delivery sequence
-* Params: [Bottle identification(char), height(int)]
+* Nom: delivery_Sequence 
+* Brief: Séquence de livraison de la charge utile
+* Params: None
 * Return: bool
 */
-void SLCU::drop(const char* Iden_Bottle, float height)
+void SLCU::delivery_Sequence()
 {
    float current_distance = 0;
    float startTime;
@@ -356,52 +314,47 @@ void SLCU::drop(const char* Iden_Bottle, float height)
    bool risingEdgeDetected = false;
    float current_speed;
   
-  switch (*Iden_Bottle)
+  if(!strcmp(trame_Pi["PARAMS"][0], "A"))
   {
-
-  
-  case 'A':
-    digitalWrite(gateA, HIGH);
-    Serial.println("Gate A open");
-    Serial.println(height);
-    break;
-
-  case 'B':
-    digitalWrite(gateB, HIGH);
-    Serial.println("Gate B open");
-    break;
-  case 'C':
-    digitalWrite(gateC, HIGH);
-    Serial.println("Gate C open");
-    break;
+    Serial.println("Gate A opened; Initial Altitude :"+String(trame_Pi["PARAMS"][1])));
+  }
+  else if(!strcmp(trame_Pi["PARAMS"][0], "B"))
+  {
+    Serial.println("Gate B opened; Initial Altitude :"+String(trame_Pi["PARAMS"][1])));
+  }
+  else if(!strcmp(trame_Pi["PARAMS"][0], "C"))
+  {
+    Serial.println("Gate C opened; Initial Altitude :"+String(trame_Pi["PARAMS"][1])));
   }
 
-  while (current_distance < height) {
-    // Read the state of the input pin
-    int previousInputState = inputState;
-    int inputState = digitalRead(rotation_pulses);
+  while (current_distance < height) //Ce while doit etre enlevé
+  {
+      // Read the state of the input pin
+      int previousInputState = inputState;
+      int inputState = digitalRead(rotation_pulses);
 
-   
-    if (inputState == HIGH && previousInputState == LOW) {
-        startTime = millis();
-        risingEdgeDetected = true;
-    }
-    if (inputState == HIGH && previousInputState == LOW && risingEdgeDetected) {
-        endTime = millis();
-        unsigned long timeBetweenEdges = endTime - startTime;
-
-        current_speed = (M_PI * (RAYON / 2)) / (timeBetweenEdges / 1000.0); 
-        current_distance += M_PI * RAYON; 
-
-        // Print the calculated values
-        Serial.print("Speed=");
-        Serial.println(current_speed * 100); 
-        Serial.print("Distance Traveled = ");
-        Serial.println(current_distance);
-
-        risingEdgeDetected = false;
-    }
     
-}
+      if (inputState == HIGH && previousInputState == LOW) 
+      {
+          startTime = millis();
+          risingEdgeDetected = true;
+      }
 
-};
+      if (inputState == HIGH && previousInputState == LOW && risingEdgeDetected) 
+      {
+          endTime = millis();
+          unsigned long timeBetweenEdges = endTime - startTime;
+
+          current_speed = (M_PI * (RAYON / 2)) / (timeBetweenEdges / 1000.0); 
+          current_distance += M_PI * RAYON; 
+
+          // Print the calculated values
+          Serial.print("Speed=");
+          Serial.println(current_speed * 100); 
+          Serial.print("Distance Traveled = ");
+          Serial.println(current_distance);
+
+          risingEdgeDetected = false;
+      }
+  }
+}

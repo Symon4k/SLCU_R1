@@ -27,10 +27,8 @@ void loop()
     {
       delayMicroseconds(5); //Do Nothing while Not busy
     }
-    else
-
+    else if(!g_SLCU.checkSerial())
     {
-      g_SLCU.checkSerial(); \\\\\\\\\\\\\\\\\\\\\\\\\\\\
       //MEF Generale (Gere status de launch et demarrage des systemes, alertes s'il y a lieu et les commandes forcées)
       switch(g_SLCU.getStagingStatus())
       {
@@ -54,10 +52,10 @@ void loop()
             case CANCEL:
               g_SLCU.sendToGCSO("System is in NO-GO ! Command ignored");
               break;
-            case DROP:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            case DROP:
 
               g_SLCU.sendToGCSO("Drop procedure started");
-              g_SLCU.drop(Iden_Bottle,height)
+              g_SLCU.delivery_Sequence();
               break;
             default:
               g_SLCU.sendToGCSO("Command not recognized");
