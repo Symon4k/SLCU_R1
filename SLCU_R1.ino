@@ -30,11 +30,11 @@ void loop()
     else
 
     {
-      g_SLCU.checkSerial(); \\\\\\\\\\\\\\\\\\\\\\\\\\\\
+      
       //MEF Generale (Gere status de launch et demarrage des systemes, alertes s'il y a lieu et les commandes forcées)
       switch(g_SLCU.getStagingStatus())
       {
-        case STANDBY:
+          case STANDBY:
           switch(g_SLCU.processCommand())
           {
             case LSC:
@@ -54,10 +54,10 @@ void loop()
             case CANCEL:
               g_SLCU.sendToGCSO("System is in NO-GO ! Command ignored");
               break;
-            case DROP:\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-
-              g_SLCU.sendToGCSO("Drop procedure started");
-              g_SLCU.drop(Iden_Bottle,height)
+            case DROP:
+              /*g_SLCU.sendToGCSO("Drop procedure started");*/
+              const StaticJsonDocument<200>& trame_Pi=g_SLCU.getTramePi();
+              g_SLCU.drop(trame_Pi["PARAMS"][0], trame_Pi["PARAMS"][1]);
               break;
             default:
               g_SLCU.sendToGCSO("Command not recognized");
@@ -90,7 +90,7 @@ void loop()
         default:
           break;
       }
-    }
+    };
   }
 };
  
