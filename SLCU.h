@@ -34,7 +34,7 @@ class SLCU
     void sendToGCSO(String message);
     void cancelDelivery();
     void debugging();
-    void drop(const char* Iden_Bottle, float height);
+    void delivery_Sequence(const StaticJsonDocument<200>& trame_Pi);
     bool initialized = false;
     Commands processCommand(); 
     void init(int baudRate);

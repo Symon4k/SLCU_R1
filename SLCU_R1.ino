@@ -27,10 +27,9 @@ void loop()
     {
       delayMicroseconds(5); //Do Nothing while Not busy
     }
-    else
-
+    else if(!g_SLCU.checkSerial())
     {
-      
+
       //MEF Generale (Gere status de launch et demarrage des systemes, alertes s'il y a lieu et les commandes forcées)
       switch(g_SLCU.getStagingStatus())
       {
@@ -55,9 +54,11 @@ void loop()
               g_SLCU.sendToGCSO("System is in NO-GO ! Command ignored");
               break;
             case DROP:
-              /*g_SLCU.sendToGCSO("Drop procedure started");*/
+
+              
               const StaticJsonDocument<200>& trame_Pi=g_SLCU.getTramePi();
-              g_SLCU.drop(trame_Pi["PARAMS"][0], trame_Pi["PARAMS"][1]);
+              g_SLCU.sendToGCSO("Drop procedure started");
+              g_SLCU.delivery_Sequence(trame_Pi);
               break;
             default:
               g_SLCU.sendToGCSO("Command not recognized");

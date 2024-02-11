@@ -5,6 +5,10 @@
 */
 #include "SLCU.h"
 #include "SLCU_Constants.h"
+#include <Servo.h>
+
+Servo servo_A, servo_B, servo_C;
+
 
 SLCU::SLCU(){}
 
@@ -12,15 +16,18 @@ void SLCU::init(int baudRate) //FUNCTION DECLARED TWICE
 {
   Serial.begin(baudRate);
 
-  pinMode(GATE_A,OUTPUT);//drop 
-  pinMode(GATE_B,OUTPUT);
-  pinMode(GATE_C,OUTPUT);
+
+  pinMode(GATE_A,OUTPUT);// drop 
+  pinMode(GATE_B,OUTPUT);// drop 
+  pinMode(GATE_C,OUTPUT);// drop 
+  pinMode(rotation_pulses, INPUT);
 
   initialized = true;
   Launch_Status = NOGO; 
   Op_Mode = NONE; 
   Staging = STANDBY;
 }
+
 
 /*
 * Nom: checkSerial 
@@ -40,14 +47,9 @@ uint8_t SLCU::checkSerial()
         Serial.println(error.f_str());
         return -1;
       }
-      /*const char* CMD = trame_Pi["CMD"];
-      const char* param_String = trame_Pi["PARAMS"][0];
-      float* param_Value = trame_Pi["PARAMS"][1];*/
-
-    return 0;
-  }
+      return 0;      
 }
-
+}
 
 /*
 * Nom: processCommand 
@@ -87,7 +89,7 @@ Commands SLCU::processCommand()
       Serial.println("Commande invalide");
       return -1;
     }
-};
+}
 
 
 /*
@@ -168,15 +170,10 @@ void SLCU::cancelDelivery()
 void SLCU::debugging()
 {
   Serial.println("Debugging");
-};
+}
 
-/*
-* Nom: debugging
-* Brief: Bottle delivery sequence
-* Params: [Bottle identification(char), height(int)]
-* Return: bool
-*/
-void SLCU::drop(const char* Iden_Bottle, float height)
+
+void SLCU::delivery_Sequence(const StaticJsonDocument<200>& trame_Pi)
 {
    float current_distance = 0;
    float startTime;
@@ -184,53 +181,56 @@ void SLCU::drop(const char* Iden_Bottle, float height)
    bool risingEdgeDetected = false;
    float current_speed;
   
-  switch (*Iden_Bottle)
-  {
+   const char* bottleIdentifier = trame_Pi["PARAMS"][0]; 
+  char bottleChar = bottleIdentifier[0];
+   float height = trame_Pi["PARAMS"][1];
 
-  
-  case 'A':
-    digitalWrite(GATE_A, HIGH);
-    Serial.println("Gate A open");
-    Serial.println(height);
-    break;
+   switch (bottleChar) {
+      case 'A':
+         digitalWrite(GATE_A, HIGH);
+         break;
+      case 'B':
+         digitalWrite(GATE_B, HIGH);
+         break;
+      case 'C':
+         digitalWrite(GATE_C, HIGH);
+         break;
+   }
 
-  case 'B':
-    digitalWrite(GATE_B, HIGH);
-    Serial.println("Gate B open");
-    break;
-  case 'C':
-    digitalWrite(GATE_C, HIGH);
-    Serial.println("Gate C open");
-    break;
-  }
+   Serial.println("Gate " + String(bottleIdentifier) + " opened; Initial Altitude: " + String(height));
 
-  while (current_distance < height) {
-    // Read the state of the input pin
-    int inputState = digitalRead(rotation_pulses);
-
-    int previousInputState = inputState;
-    
+   int inputState = digitalRead(rotation_pulses);
    
-    if (inputState == HIGH && previousInputState == LOW) {
-        startTime = millis();
-        risingEdgeDetected = true;
-    }
-    if (inputState == HIGH && previousInputState == LOW && risingEdgeDetected) {
-        endTime = millis();
-        unsigned long timeBetweenEdges = endTime - startTime;
+   while (current_distance < height)
+   {
+      // Read the state of the input pin
+      int previousInputState = inputState;
+      inputState = digitalRead(rotation_pulses); // Removed int declaration here
 
-        current_speed = (M_PI * (RAYON / 2)) / (timeBetweenEdges / 1000.0); 
-        current_distance += M_PI * RAYON; 
+      if (inputState == HIGH && previousInputState == LOW) 
+      {
+         startTime = millis();
+         risingEdgeDetected = true;
+      }
 
-        // Print the calculated values
-        Serial.print("Speed=");
-        Serial.println(current_speed * 100); 
-        Serial.print("Distance Traveled = ");
-        Serial.println(current_distance);
+      if (inputState == HIGH && previousInputState == LOW && risingEdgeDetected) 
+      {
+         endTime = millis();
+         unsigned long timeBetweenEdges = endTime - startTime;
 
-        risingEdgeDetected = false;
-    }
-    
+         current_speed = (M_PI * (RAYON / 2)) / (timeBetweenEdges / 1000.0); 
+         current_distance += M_PI * RAYON; 
+
+         // Print the calculated values
+         Serial.print("Speed=");
+         Serial.println(current_speed * 100); 
+         Serial.print("Distance Traveled = ");
+         Serial.println(current_distance);
+
+         risingEdgeDetected = false;
+      }
+   }
 }
 
-};
+
+ 
