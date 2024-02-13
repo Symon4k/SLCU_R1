@@ -31,7 +31,7 @@ enum States
 
 enum Sequence
 {
-  STANDBY=0, //En attente de commande "DROP" avec A B ou C et la hauteur
+  STANDBY=0, //En attente de commande "DROP" avec A B ou C et la hauteur fonction: lit le serial port en continue
   ENGAGE, //A partir de quand on envoie signal drop jusqua confirmation porte ouverte 
   MONITOR, // Debut Porte ouverte et commence monitoring speed and height and accel (Limit Force pulling down when breaking or impact speed...)
   CONFIRM, // Quand les signaux concordent avec le fait que la charge est relachée
