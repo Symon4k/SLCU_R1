@@ -21,6 +21,11 @@
 #define GATE_C 4
 #define rotation_pulses 5 /*Input for drop sequence*/
 
+// Define PID constants
+#define KP 0.1
+#define KI 0.01
+#define KD 0.001
+#define SERVOPin  14
 
 enum States
 {

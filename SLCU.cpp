@@ -7,8 +7,7 @@
 #include "SLCU_Constants.h"
 #include <Servo.h>
 
-Servo servo_A, servo_B, servo_C;
-
+Servo servo_A;
 
 SLCU::SLCU(){}
 
@@ -21,6 +20,7 @@ void SLCU::init(int baudRate) //FUNCTION DECLARED TWICE
   pinMode(GATE_B,OUTPUT);// drop // mux 32 1 2 la sortie des cerveau vont être 9 11 l'entrée
   pinMode(GATE_C,OUTPUT);// drop 
   pinMode(rotation_pulses, INPUT);
+  pinMode(SERVOPin, INPUT);
 
   initialized = true;
   Launch_Status = NOGO; 
@@ -174,15 +174,34 @@ void SLCU::debugging()
 }
 
 
-void SLCU::delivery_Sequence()
-{
-  // Variables are initilized once
+
+
+float integral = 0; // Needs to be initially set to 0=> declared outside the function 
+float previous_error = 0; 
+// PWM calculation to slow down the bottle
+float calculatePID(float setpoint, float current_value) {
+    float error = setpoint - current_value;
+    integral = integral + error;
+    float derivative = error - previous_error;
+    float output = KP * error + KI * integral + KD * derivative;
+    previous_error = error;
+    return output;
+}
+
+// Modify the delivery sequence function
+void SLCU::delivery_Sequence() {
+  // Variables are initialized once
   static float startTime;
   static float endTime; 
   static float current_distance = 0;
-  
+  static float final_altitude = 1;
+
+  //PID Variables
+ 
   float current_speed;
   bool risingEdgeDetected = false;
+
+  int previousInputState;
   // Extract trame params 
   const char* bottleIdentifier = trame_Pi["PARAMS"][0]; 
   char bottleChar = bottleIdentifier[0];
@@ -204,11 +223,11 @@ void SLCU::delivery_Sequence()
 
   int inputState = digitalRead(rotation_pulses);
   
-  while (current_distance < height)
-
-  {
+  servo_A.attach(SERVOPin); // Attach servo to the pin
+  
+  while (height - current_distance > final_altitude) {
     // Read the state of the input pin
-    int previousInputState = inputState;
+    previousInputState = inputState;
     inputState = digitalRead(rotation_pulses); // Removed int declaration here
 
     if (inputState == HIGH && previousInputState == LOW && !risingEdgeDetected) // For the first rotational pulse detected
@@ -225,11 +244,23 @@ void SLCU::delivery_Sequence()
         current_speed = (M_PI * (RAYON / 2)) / (timeBetweenEdges / 1000.0); 
         current_distance += (M_PI/2) * RAYON; 
 
+        // Calculate PID control output to adjust speed
+        float pid_output = calculatePID(final_altitude, height - current_distance);
+        int servo_speed = map(pid_output, -255, 255, 0, 180); // Map PID output to servo position
+
+       /* // Ensure servo_speed is within valid range for servo
+        if (servo_speed < 0) {
+            servo_speed = 0;
+        } else if (servo_speed > 180) {
+            servo_speed = 180;
+        }*/
+
+        servo_A.write(servo_speed); // Set servo speed
         // Print the calculated values
         Serial.print("Speed=");
-        Serial.println(current_speed * 100); 
-        Serial.print("Distance Traveled = ");
-        Serial.println(current_distance);
+        Serial.println(current_speed); 
+        Serial.print("Payload altitude = ");
+        Serial.println(String(height - current_distance));
         startTime = endTime;
     }
   }
