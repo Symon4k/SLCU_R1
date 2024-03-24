@@ -32,14 +32,16 @@ void loop()
     {
       if(g_SLCU.checkSerial()) 
       {
-        Serial.println("Error in trame detection");
+        //Serial.println("Error in trame detection");
       }
       //MEF Generale (Gere status de launch et demarrage des systemes, alertes s'il y a lieu et les commandes forcées)
       switch(g_SLCU.getLaunchStatus())
       {
         case NOGO:
+          //Serial.println("NOGO");
           break;
         case GO:
+          //Serial.println("GO");
           switch(g_SLCU.getStagingStatus())
           {
             case STANDBY:

@@ -16,9 +16,7 @@
 #define UPDATE_PERIOD 100 //Delays in ms before checking if communication arrived again
 #define BAUD_RATE 115200
 
-#define GATE_A 2 
-#define GATE_B 3
-#define GATE_C 4
+
 #define rotation_pulses 5 /*Input for drop sequence*/
 
 // Define PID constants
@@ -26,6 +24,18 @@
 #define KI 0.01
 #define KD 0.001
 #define SERVOPin  14
+
+
+#define demux1 69
+#define demux2 69
+#define wire_A 69
+#define wire_B 69
+#define wire_C 69
+
+#define sound_alarm 69
+
+#define ledPin 69
+
 
 enum States
 {
